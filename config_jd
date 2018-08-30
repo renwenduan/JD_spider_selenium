@@ -1,0 +1,12 @@
+# 查询关键字
+KEYWORDS = 'ipad'
+# 下载的最大页数
+MAX_PAGE = 10
+# 指定PhantomJs浏览器的状态,不加载图片,启用缓存
+SERVICE_ARGS = ['--load-images=false','--disk-cache=true']
+# mongodb的地址
+MONGO_URL = 'localhost'
+# mongdb数据库的名字
+MONGO_DB = 'taobao'
+# mongo表的名字
+MONGO_COLLECTION = 'products'
