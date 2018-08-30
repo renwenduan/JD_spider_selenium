@@ -1,0 +1,87 @@
+# -*- coding: utf-8 -*-
+# usr/bin/env python3
+# Author: DuanRenWen
+# env: python3.6
+
+import time
+import logging
+import pymongo
+from config_jd import *
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from pyquery import PyQuery as pq
+from urllib.parse import quote
+
+
+def save_to_mongo(result):
+
+    '''
+    把结果保存起来
+    :param result: 解析过后的商品信息
+    :return:
+    '''
+    try:
+        if db[MONGO_COLLECTION].insert(result):
+            print('save result successfully')
+    except Exception:
+        print('fail to save')
+
+
+def get_products():
+    '''
+    paser the result and transfer to mongo
+    :return:
+    '''
+    html = browser.page_source
+    doc = pq(html)
+    items = doc('.gl-warp .gl-item').items()
+    for item in items:
+        product = {
+            'name': item(' .p-name em').text(),
+            'img': item(' .p-img img').attr('src'),
+            'price': item(' .p-price strong i').text(),
+            'commit': item(' .p-commit strong a').text(),
+            'shop': item(' .p-shop a').text(),
+        }
+        save_to_mongo(product)
+
+
+def index_page(page):
+    '''
+    check  the element we need
+    :param page: page number
+    :return: none
+    '''
+    try:
+        if page > 1:
+            print("now is page {}".format(page))
+            page_input = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".p-skip input")))
+            jump_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '.p-skip .btn-default')))
+            print("locate the  {}'s page jump button".format(page))
+            page_input.clear()
+            page_input.send_keys(page)
+            jump_button.click()
+            print('jump to the ', page)
+
+        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.gl-item')))
+        print(' page {} node has been loaded'.format(page))
+        get_products()
+    except Exception:
+        index_page(page)
+
+
+def main():
+    for i in range(1, MAX_PAGE+1):
+        index_page(i)
+    browser.close()
+
+
+client = pymongo.MongoClient(MONGO_URL, 27017)
+db = client.taobao
+url = 'https://search.jd.com/Search?keyword=' + quote(KEYWORDS)
+browser = webdriver.PhantomJS(service_args=SERVICE_ARGS)
+wait = WebDriverWait(browser, 10)
+browser.get(url)
+main()
