@@ -6,7 +6,7 @@
 import time
 import logging
 import pymongo
-from config_jd import *
+from config import *
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
